@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buyer Chat</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        /* Basic styling */
+        #messages {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 200px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type a message..." />
+    <button id="sendMessage">Send Message</button>
+    
+    <script>
+        const socket = io("http://localhost:4000", {
+            transports: ["websocket", "polling"],
+        });
+
+        const buyerId = "66f6c7bb295ebfeaccadb49a"; // Replace with actual buyer ID
+        const sellerId = "66f9856b6cf2e5856e387fb3"; // Replace with actual seller ID
+        const room = "testRoom"; // Dynamically set this based on the seller
+
+        socket.on("connect", () => {
+            console.log("Connected to server");
+            socket.emit("join room", room);
+
+            // Request previous messages when connecting to a specific seller
+            socket.emit("get messages", { room: room, senderId: buyerId, receiverId: sellerId });
+        });
+
+        // Listen for previous messages
+        socket.on("previous messages", (messages) => {
+            const messageDiv = document.getElementById("messages");
+            messages.forEach((msg) => {
+                // Display "You" for buyer's messages and "Seller" for seller's responses
+                const sender = msg.senderId === buyerId ? "You" : "Seller";
+                messageDiv.innerHTML += `<div><strong>${sender}:</strong> ${msg.message}</div>`;
+            });
+            messageDiv.scrollTop = messageDiv.scrollHeight; // Scroll to bottom
+        });
+
+        // Send message on button click
+        document.getElementById("sendMessage").onclick = () => {
+            const message = document.getElementById("messageInput").value;
+            if (message.trim() === "") return; // Prevent sending empty messages
+            
+            socket.emit("chat message", { room: room, senderId: buyerId, receiverId: sellerId, message });
+            document.getElementById("messageInput").value = ""; // Clear input field
+        };
+
+        // Listen for chat messages
+        socket.on("chat message", (data) => {
+            const messageDiv = document.getElementById("messages");
+            // Display "You" for buyer's messages and "Seller" for seller's responses
+            const sender = data.senderId === buyerId ? "You" : "Seller";
+            messageDiv.innerHTML += `<div><strong>${sender}:</strong> ${data.message}</div>`;
+            messageDiv.scrollTop = messageDiv.scrollHeight; // Scroll to bottom
+        });
+
+        // Listen for message responses from the server
+        socket.on("message response", (data) => {
+            console.log(data.message); // Log the acknowledgment from the server
+            const messageDiv = document.getElementById("messages");
+            messageDiv.innerHTML += `<div><em>${data.message}</em></div>`; // Display server acknowledgment
+            messageDiv.scrollTop = messageDiv.scrollHeight; // Scroll to bottom
+        });
+
+        socket.on("disconnect", (reason) => {
+            console.log("Disconnected:", reason);
+        });
+
+        socket.on("error", (error) => {
+            console.error("Socket error:", error);
+        });
+    </script>
+</body>
+</html>
