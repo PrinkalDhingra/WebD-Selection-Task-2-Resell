@@ -36,7 +36,7 @@ const { auth, isBuyer, isSeller, isAdmin } = require("../middlewares/auth")
 //Product routes
 router.post("/addproduct", auth, isSeller, addProduct);
 router.post("/addreview",auth,isBuyer,addReview);
-router.delete("/deleteproduct",auth,isSeller,deleteProduct);
+router.delete("/deleteproduct/:productId",auth,isSeller,deleteProduct);
 router.get("/showallproducts",auth,showAllProducts);
 
 
