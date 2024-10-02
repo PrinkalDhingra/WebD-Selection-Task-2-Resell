@@ -145,16 +145,21 @@ exports.addReview = async(req,res) => {
     const user=req.user.id
     const { rating, comment, productId } = req.body;
 
+    console.log(user);
+
     const product = await Product.findById(productId);
 
-     // Check if the user has purchased the product
-     const orders = await Order.find({ user: userId, "cart.productId": productId });
-     if (orders.length === 0) {
-       return res.status(403).json({
-         success: false,
-         message: "You can only review a product you have purchased",
-       });
-     }
+    const hasPurchased = await Order.findOne({
+      user: user,
+      "cart.productId": productId, // Check if the product is in the user's order cart
+    });
+
+    if (!hasPurchased) {
+      return res.status(400).json({
+        success: false,
+        message: "You can only review products you have purchased.",
+      });
+    }
 
     const review = {
       user,
@@ -164,12 +169,12 @@ exports.addReview = async(req,res) => {
     };
 
     const isReviewed = product.reviews.find(
-      (rev) => rev.user._id === req.user._id
+      (rev) => rev.user === req.user.id
     );
 
     if (isReviewed) {
       product.reviews.forEach((rev) => {
-        if (rev.user._id === req.user._id) {
+        if (rev.user=== req.user.id) {
           (rev.rating = rating), (rev.comment = comment), (rev.user = user);
         }
       });
@@ -202,7 +207,6 @@ exports.addReview = async(req,res) => {
       })
   }
 }
-
 
 //filter the product using price range
 exports.getProductsByPriceRange = async (req, res) => {
