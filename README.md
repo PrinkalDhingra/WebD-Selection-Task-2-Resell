@@ -3,7 +3,7 @@ Enrollment Number - IIT2023086
 Whatsapp Number - 8860053276
 
 To set up the project please follow the steps below:
-1.clone the repository in your local computer.After this move all the files from the src folder to your main folder and delete src.
+1.clone the repository in your local computer.After this move all the files from the src folder to your main folder where the node modules and package.json file is there and delete src.
 2.run npm install.this should install all the node modules.
 
 
