@@ -103,7 +103,7 @@ exports.showAllProducts = async (req,res) => {
 //delete a product
 exports.deleteProduct = async(req,res) =>{
   try{
-    const { productId } = req.body
+    const { productId } = req.params;
   
     // Find the Product
     const product = await Product.findById(productId)
