@@ -32,7 +32,9 @@ images: [
  reviews: [
     {
       user: {
-        type: Object,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',  // Reference to the User schema
+        required: true,
       },
       rating: {
         type: Number,
