@@ -11,3 +11,4 @@ To test the backend type "npm run dev"
 
 
 To test the apis , i have attached the pdf which contains all the necessary steps for smooth testing:
+Geekhave_round2_ppt.pdf
