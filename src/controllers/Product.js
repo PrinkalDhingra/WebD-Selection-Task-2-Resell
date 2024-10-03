@@ -42,7 +42,7 @@ exports.addProduct = async(req,res) => {
         const updatedUser = await User.findByIdAndUpdate(
           sellerId,
           { $push: { products: product._id } },  // Add product ID to 'products' array
-          { new: true, useFindAndModify: false }  // Return updated document
+          { new: true, useFindAndModify: false }  
         );
     
         if (!updatedUser) {
@@ -112,7 +112,7 @@ exports.deleteProduct = async(req,res) =>{
     }
    
     // Store the sellerId to update later
-    const sellerId = product.sellerId; // Assuming sellerId is part of the product document
+    const sellerId = product.sellerId; 
 
     // Delete the Product
     await Product.findByIdAndDelete(productId);
@@ -120,8 +120,8 @@ exports.deleteProduct = async(req,res) =>{
     // Remove the product from the seller's products array
     await User.findByIdAndUpdate(
       sellerId,
-      { $pull: { products: productId } },  // Use $pull to remove the product ID
-      { new: true, useFindAndModify: false } // Return updated document
+      { $pull: { products: productId } },  
+      { new: true, useFindAndModify: false } 
     );
 
     return res.status(200).json({
@@ -234,10 +234,10 @@ exports.getProductsByPriceRange = async (req, res) => {
     if (minPrice || maxPrice) {
       priceFilter.discountPrice = {};
       if (minPrice) {
-        priceFilter.discountPrice.$gte = Number(minPrice); // Price greater than or equal to minPrice
+        priceFilter.discountPrice.$gte = Number(minPrice); 
       }
       if (maxPrice) {
-        priceFilter.discountPrice.$lte = Number(maxPrice); // Price less than or equal to maxPrice
+        priceFilter.discountPrice.$lte = Number(maxPrice); 
       }
     }
 
@@ -289,8 +289,8 @@ exports.getProductsByName = async (req, res) => {
       });
     }
 
-    // Use a case-insensitive regex to find products that match the name
-    const nameFilter = { name: { $regex: name, $options: 'i' } }; // 'i' for case-insensitive
+
+    const nameFilter = { name: { $regex: name, $options: 'i' } }; 
 
     // Find products based on the name filter
     const filteredProducts = await Product.find(nameFilter, {
@@ -341,8 +341,7 @@ exports.getProductsByCategory = async (req, res) => {
       });
     }
 
-    // Use a case-insensitive regex to find products that match the category
-    const categoryFilter = { category: { $regex: category, $options: 'i' } }; // 'i' for case-insensitive
+    const categoryFilter = { category: { $regex: category, $options: 'i' } }; 
 
     // Find products based on the category filter
     const filteredProducts = await Product.find(categoryFilter, {
@@ -381,7 +380,7 @@ exports.getProductsByCategory = async (req, res) => {
 
 exports.editProduct = async (req, res) => {
   try {
-    const { productId } = req.params; // Get productId from request parameters
+    const { productId } = req.params; // Get productId 
     const { name, description, originalprice, discountPrice, stockQuantity, category } = req.body;
     
 
@@ -417,13 +416,12 @@ exports.editProduct = async (req, res) => {
 
     // Check if there's a price drop
     if (previousDiscountPrice > discountPrice) {
-      // Get all users who have this product in their wishlist
       console.log("Looking for wishlists for productId:", productId);
       
-      // Find users who have the productId in their wishlist
+
       const wishlistedUsers = await Wishlist.find({ productId: productId }).populate('userId');
       
-      console.log("Wishlisted Users:", wishlistedUsers); // Log all wishlisted users
+      console.log("Wishlisted Users:", wishlistedUsers); 
 
       if (wishlistedUsers.length > 0) {
         for (const wish of wishlistedUsers) {
@@ -449,7 +447,7 @@ exports.editProduct = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Product updated successfully.',
-      product, // Return the updated product
+      product, 
     });
   } catch (error) {
     console.error(error);
