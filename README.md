@@ -7,7 +7,7 @@ To set up the project please follow the steps below:
 2.run npm install.this should install all the node modules.
 
 
-Now that is done , craete a mongodb database and paste the mongo uri in the .env file to test the code .
+Now that is done , create a mongodb database and paste the mongo uri in the .env file to test the code .
 To test the backend type "npm run dev"
 
 
