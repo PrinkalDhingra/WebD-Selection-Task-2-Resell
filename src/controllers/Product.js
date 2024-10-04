@@ -41,7 +41,7 @@ exports.addProduct = async(req,res) => {
 
         const updatedUser = await User.findByIdAndUpdate(
           sellerId,
-          { $push: { products: product._id } },  // Add product ID to 'products' array
+          { $push: { products: product._id } },  
           { new: true, useFindAndModify: false }  
         );
     
@@ -104,15 +104,26 @@ exports.showAllProducts = async (req,res) => {
 exports.deleteProduct = async(req,res) =>{
   try{
     const { productId } = req.params;
+    console.log(productId);
   
     // Find the Product
     const product = await Product.findById(productId)
     if (!product) {
       return res.status(404).json({ message: "Product not found" })
     }
-   
-    // Store the sellerId to update later
+
+
+
     const sellerId = product.sellerId; 
+
+    // Check if the logged-in seller is the owner of the product
+    if (product.sellerId.toString() !== req.user.id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to delete this product.',
+      });
+    }
+
 
     // Delete the Product
     await Product.findByIdAndDelete(productId);
@@ -208,13 +219,12 @@ exports.addReview = async(req,res) => {
   }
 }
 
-//filter the product using price range
 exports.getProductsByPriceRange = async (req, res) => {
   try {
-    // Get minPrice and maxPrice from the user's request body
+    // Get minPrice and maxPrice 
     const { minPrice, maxPrice } = req.body;
 
-    // Validate that the values provided are numbers
+    // Validate 
     if (minPrice && isNaN(minPrice)) {
       return res.status(400).json({
         success: false,
@@ -229,15 +239,15 @@ exports.getProductsByPriceRange = async (req, res) => {
       });
     }
 
-    // Build a filter object for price
+
     let priceFilter = {};
     if (minPrice || maxPrice) {
       priceFilter.discountPrice = {};
       if (minPrice) {
-        priceFilter.discountPrice.$gte = Number(minPrice); 
+        priceFilter.discountPrice.$gte = Number(minPrice);
       }
       if (maxPrice) {
-        priceFilter.discountPrice.$lte = Number(maxPrice); 
+        priceFilter.discountPrice.$lte = Number(maxPrice);
       }
     }
 
@@ -250,7 +260,7 @@ exports.getProductsByPriceRange = async (req, res) => {
       stockQuantity: true,
     }).exec();
 
-    // If no products are found, return a message
+   
     if (filteredProducts.length === 0) {
       return res.status(404).json({
         success: false,
@@ -258,7 +268,7 @@ exports.getProductsByPriceRange = async (req, res) => {
       });
     }
 
-    // Return the filtered products
+    
     return res.status(200).json({
       success: true,
       message: 'Products fetched successfully',
@@ -278,10 +288,9 @@ exports.getProductsByPriceRange = async (req, res) => {
 //filter products using name
 exports.getProductsByName = async (req, res) => {
   try {
-    // Get the name from the user's request body
+
     const { name } = req.body;
 
-    // Validate that the name is provided
     if (!name) {
       return res.status(400).json({
         success: false,
@@ -289,7 +298,7 @@ exports.getProductsByName = async (req, res) => {
       });
     }
 
-
+    
     const nameFilter = { name: { $regex: name, $options: 'i' } }; 
 
     // Find products based on the name filter
@@ -301,7 +310,7 @@ exports.getProductsByName = async (req, res) => {
       stockQuantity: true,
     }).exec();
 
-    // If no products are found, return a message
+    
     if (filteredProducts.length === 0) {
       return res.status(404).json({
         success: false,
@@ -326,14 +335,13 @@ exports.getProductsByName = async (req, res) => {
 };
 
 
-//filter product by category
-// Filter products by category
+
 exports.getProductsByCategory = async (req, res) => {
   try {
-    // Get the category from the user's request body
+   
     const { category } = req.body;
 
-    // Validate that the category is provided
+    // Validate 
     if (!category) {
       return res.status(400).json({
         success: false,
@@ -343,7 +351,6 @@ exports.getProductsByCategory = async (req, res) => {
 
     const categoryFilter = { category: { $regex: category, $options: 'i' } }; 
 
-    // Find products based on the category filter
     const filteredProducts = await Product.find(categoryFilter, {
       name: true,
       description: true,
@@ -380,11 +387,11 @@ exports.getProductsByCategory = async (req, res) => {
 
 exports.editProduct = async (req, res) => {
   try {
-    const { productId } = req.params; // Get productId 
+    const { productId } = req.params; 
     const { name, description, originalprice, discountPrice, stockQuantity, category } = req.body;
     
 
-    // Validate that the required fields are provided
+    // Validate 
     if (!name || !description || !originalprice || !discountPrice || !stockQuantity || !category) {
       return res.status(400).json({
         success: false,
@@ -392,7 +399,6 @@ exports.editProduct = async (req, res) => {
       });
     }
 
-    // Find the product by ID and update it
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({
@@ -400,10 +406,19 @@ exports.editProduct = async (req, res) => {
         message: 'Product not found.',
       });
     }
+       
+
+     // Check if the logged-in seller is the owner of the product
+     if (product.sellerId.toString() !== req.user.id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to edit this product.',
+      });
+    }
 
     const previousDiscountPrice =product.discountPrice;
 
-    // Update product information
+    // Update product 
     product.name = name;
     product.description = description;
     product.originalprice = originalprice;
@@ -412,22 +427,22 @@ exports.editProduct = async (req, res) => {
     product.category = category;
 
 
-    await product.save(); // Save the updated product
+    await product.save(); // Save 
 
-    // Check if there's a price drop
     if (previousDiscountPrice > discountPrice) {
+      
       console.log("Looking for wishlists for productId:", productId);
       
-
+    
       const wishlistedUsers = await Wishlist.find({ productId: productId }).populate('userId');
       
       console.log("Wishlisted Users:", wishlistedUsers); 
 
       if (wishlistedUsers.length > 0) {
         for (const wish of wishlistedUsers) {
-          const user = wish.userId; // The populated user object
+          const user = wish.userId; 
           
-          console.log("Notifying User:", user); // Log user details
+          console.log("Notifying User:", user); 
 
           // Send email notification
           try {
