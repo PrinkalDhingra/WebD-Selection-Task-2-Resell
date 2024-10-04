@@ -1,13 +1,12 @@
-// controllers/couponController.js
+
 const Coupon = require('../models/Coupon');
 const Product = require('../models/Product');
 
 exports.createCoupon = async (req, res) => {
   try {
     const { code, discountType, discountValue, expiryDate, productIds } = req.body;
-    const sellerId = req.user.id; // Get seller ID from the request
+    const sellerId = req.user.id; 
 
-    // Check if all productIds belong to the seller
     const products = await Product.find({ _id: { $in: productIds }, sellerId });
 
     if (products.length !== productIds.length) {
@@ -30,7 +29,7 @@ exports.createCoupon = async (req, res) => {
   }
 };
 
-// Update validateCoupon to check applicable products
+
 exports.validateCoupon = async (req, res) => {
   const { code, productId } = req.body;
 
@@ -46,7 +45,7 @@ exports.validateCoupon = async (req, res) => {
       return res.status(400).json({ message: 'Coupon has expired' });
     }
 
-    // Check if the coupon is applicable to the product
+  
     if (!coupon.applicableProducts.includes(productId)) {
       return res.status(400).json({ message: 'Coupon not applicable for this product' });
     }
